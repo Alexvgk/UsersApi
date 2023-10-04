@@ -12,17 +12,25 @@ namespace UsersApi.Service
 
         }
 
-        public DbSet<User> users { get; set; }
-        public DbSet<Role> roles { get; set; }
+        public DbSet<User>? users { get; set; }
+        public DbSet<Role>? roles { get; set; }
+        public DbSet<UserRole> UserRoles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
-            // Пример: Конфигурация отношения многие-ко-многим между User и Role
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.Roles)
-                .WithMany(r => r.Users)
-                .UsingEntity(j => j.ToTable("Roles"));
+            modelBuilder.Entity<UserRole>()
+                .HasKey(ur => new { ur.roleId, ur.userId });
+
+            modelBuilder.Entity<UserRole>()
+                .HasOne(ur => ur.user)
+                .WithMany(u => u.userRoles)
+                .HasForeignKey(ur => ur.userId);
+
+            modelBuilder.Entity<UserRole>()
+                .HasOne(ur => ur.role)
+                .WithMany(r => r.userRole)
+                .HasForeignKey(ur => ur.roleId);
 
             base.OnModelCreating(modelBuilder);
         }
