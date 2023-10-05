@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using UsersApi.Exeptions;
 using UsersApi.Model;
+using UsersApi.Repository;
 using UsersApi.Service;
 
 namespace UsersApi.Controllers
@@ -10,82 +12,24 @@ namespace UsersApi.Controllers
     [ApiController]
     public class UserController : Controller
     {
-        private readonly UserContext _context;
+        private readonly IUserRepository _userRepository;
 
-        public UserController(UserContext context)
+        public UserController(IUserRepository userRepository)
         {
-            _context = context;
+            _userRepository = userRepository;
         }
 
         //all users 
         [HttpGet("/")]
         public async Task<IActionResult> GetUsers(string? filter = "", int page = 1, int pageSize = 10, string sortBy = "Id", string sortOrder = "asc")
         {
-            try
-            {
-                var query = _context.users.AsQueryable();
-
-                if (!string.IsNullOrEmpty(filter))
-                {
-                    query = query.Where(u =>
-                        u.Name.Contains(filter) || u.Email.Contains(filter)
-                    );
-                }
-
-                //sort
-                switch (sortBy)
-                {
-                    case "Name":
-                        query = sortOrder == "asc" ? query.OrderBy(u => u.Name) : query.OrderByDescending(u => u.Name);
-                        break;
-                    case "Age":
-                        query = sortOrder == "asc" ? query.OrderBy(u => u.Age) : query.OrderByDescending(u => u.Age);
-                        break;
-                    case "Email":
-                        query = sortOrder == "asc" ? query.OrderBy(u => u.Email) : query.OrderByDescending(u => u.Email);
-                        break;
-                    default:
-                        query = sortOrder == "asc" ? query.OrderBy(u => u.Id) : query.OrderByDescending(u => u.Id);
-                        break;
-                }
-
-                var totalItems = await query.CountAsync();
-                var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-                var currentPage = Math.Clamp(page, 1, totalPages);
-                if (currentPage > 1)
-                {
-                    var users = await query
-                        .Skip((currentPage - 1) * pageSize)
-                        .Take(pageSize)
-                        .ToListAsync();
-                    var result = new
-                    {
-                        TotalItems = totalItems,
-                        TotalPages = totalPages,
-                        CurrentPage = currentPage,
-                        PageSize = pageSize,
-                        Users = users
-                    };
-                    return Ok(result);
-                }
-                else
-                {
-                    var users = await query
-                        .ToListAsync();
-                    var result = new
-                    {
-                        TotalItems = totalItems,
-                        TotalPages = totalPages,
-                        CurrentPage = currentPage,
-                        PageSize = pageSize,
-                        Users = users
-                    };
-                    return Ok(result);
-                }
+            try {
+                var user = await _userRepository.getUser(filter, page, pageSize, sortBy, sortOrder);
+                return Ok(user.Users);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex}");
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -95,21 +39,16 @@ namespace UsersApi.Controllers
         {
             try
             {
-                
-                var user = await _context.users
-                    .Include(u => u.userRoles) 
-                    .SingleOrDefaultAsync(u => u.Id == id);
-
-                if (user == null)
-                {
-                    return NotFound($"No one users with id{id}");
-                }
-
+                var user = await _userRepository.GetUserById(id);
                 return Ok(user);
+            }
+            catch(ArgumentNullException ex)
+            {
+                return StatusCode(404, ex.Message);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex}");
+                return StatusCode(500, ex.Message);
             }
 
         }
@@ -120,82 +59,50 @@ namespace UsersApi.Controllers
         {
             try
             {
-                
-                var user = await _context.users.Include(u => u.userRoles).FirstOrDefaultAsync(u => u.Id == userId);
-
-                if (user == null)
-                {
-                    return NotFound($"No one users with id{userId}");
-                }
-
-               
-                var role = await _context.roles.FirstOrDefaultAsync(r => r.Name == bodyRole);
-
-                if (role == null)
-                {
-                    return NotFound("No such role");
-                }
-
-                
-                if (!(user.userRoles.IsNullOrEmpty()) && user.userRoles.Any(ur => ur.roleId == role.Id))
-                {
-                    return BadRequest("This user has this role");
-                }
-
-                // new role
-                var userRole = new UserRole
-                {
-                    userId = user.Id,
-                    roleId = role.Id
-                };
-
-                _context.UserRoles.Add(userRole);
-
-             
-                await _context.SaveChangesAsync();
+                var resp = await _userRepository.AddRoleToUser(userId, bodyRole);
 
                 return Ok("Роль успешно добавлена пользователю.");
             }
+            catch (ArgumentNullException ex) 
+            {
+                return StatusCode(404, ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(407, ex.Message);
+            }
             catch (Exception ex)
             {
-                
-                return StatusCode(500, $"Internal server error: {ex}");
+
+                return StatusCode(500, ex.Message);
             }
         }
 
-        //add user
+        ////add user
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] User user)
         {
             try
             {
-                if (user == null)
-                {
-                    return BadRequest("User can't be null");
-                }
-                if(string.IsNullOrEmpty(user.Email) || string.IsNullOrEmpty(user.Name))
-                {
-                    return BadRequest("Not all fields are filled in");
-                }
-                if(user.Age <= 0)
-                {
-                    return BadRequest("Not acceptable age");
-                }
-                var existingUser = await _context.users.FirstOrDefaultAsync(u => u.Email == user.Email);
-                if (existingUser != null)
-                {
-                    return Conflict("This email is alredy use");
-                }
-
-                _context.users.Add(user);
-                await _context.SaveChangesAsync();
-
-                //201 Created
+                int userId = _userRepository.CreateUser(user).Result;
                 return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
+            }
+
+            catch(ArgumentNullException ex)
+            {
+                return StatusCode(404, ex.Message);
+            }
+            catch(ArgumentException ex)
+            {
+                return StatusCode(407, ex.Message);
+            }
+            catch(InvalidOperationException ex)
+            {
+                return StatusCode(407, ex.Message);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex}");
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -205,22 +112,12 @@ namespace UsersApi.Controllers
         {
             try
             {
-                var user = await _context.users.FirstOrDefaultAsync(u => u.Id == id);
-
-                if (user == null)
-                {
-                    return NotFound("No user with this id");
-                }
-
-                // new data
-                user.Name = updatedUser.Name;
-                user.Age = updatedUser.Age;
-                user.Email = updatedUser.Email;
-
-            
-                await _context.SaveChangesAsync();
-
-                return Ok("Information updated");
+              var resp = await _userRepository.UpdateUser(id, updatedUser);
+              return Ok(resp);
+            }
+            catch(ArgumentNullException ex)
+            {
+                return StatusCode(404, $"Internal server error: {ex}");
             }
             catch (Exception ex)
             {
@@ -234,30 +131,12 @@ namespace UsersApi.Controllers
         {
             try
             {
-                var user = await _context.users
-                    .Include(u => u.userRoles)
-                    .FirstOrDefaultAsync(u => u.Id == id);
-
-                if (user == null)
-                {
-                    return NotFound($"No one users with id{id}");
-                }
-
-
-                _context.UserRoles.RemoveRange(user.userRoles);
-
-
-                _context.users.Remove(user);
-
-                await _context.SaveChangesAsync();
-
+                bool resp = await _userRepository.DeleteUser(id);
                 return NoContent(); //204 No Content 
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex}");
+            catch(NoUserExeption e){ return StatusCode(404, e.Message); }
+            catch (Exception ex){ return StatusCode(500, $"Internal server error: {ex}"); }
 
-            }
         }
 
     }
