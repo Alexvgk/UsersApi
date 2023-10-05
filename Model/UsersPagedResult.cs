@@ -1,5 +1,9 @@
 ﻿namespace UsersApi.Model
 {
+
+    /// <summary>
+    /// класс для получения всех данных из БД при запросе всех пользователей
+    /// </summary>
     public class UsersPagedResult
     {
         public int TotalItems { get; set; }
