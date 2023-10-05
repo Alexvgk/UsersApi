@@ -8,6 +8,10 @@ using UsersApi.Service;
 
 namespace UsersApi.Repository
 {
+
+    /// <summary>
+    /// репозиторий получения данных из БД
+    /// </summary>
     public class UserRepository : IUserRepository
     {
         private readonly UserContext _context;
@@ -27,7 +31,7 @@ namespace UsersApi.Repository
 
                 if (user == null)
                 {
-                    throw new ArgumentNullException($"No one users with id{userId}");
+                    throw new ArgumentNullException($"No one users with id {userId}");
                 }
 
                 var role = await _context.roles.FirstOrDefaultAsync(r => r.Name == bodyRole);
@@ -56,6 +60,14 @@ namespace UsersApi.Repository
                 await _context.SaveChangesAsync();
                 return true;
 
+            }
+            catch (ArgumentNullException ex)
+            {
+                throw ex;
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw ex;
             }
             catch (Exception ex)
             {
@@ -89,10 +101,23 @@ namespace UsersApi.Repository
                 await _context.SaveChangesAsync();
                 return user.Id;
             }
+            catch (ArgumentNullException ex)
+            {
+                throw ex;
+
+            }
+            catch (ArgumentException ex)
+            {
+                throw ex;
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw ex;
+            }
             catch (Exception ex)
             {
                 throw new Exception($"Internal server error: {ex}");
-              
+
             }
         }
 
@@ -114,14 +139,17 @@ namespace UsersApi.Repository
 
                 _context.users.Remove(user);
 
-                _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
                 return true; 
+            }
+            catch (NoUserExeption ex)
+            {
+                throw ex;
             }
             catch (Exception ex)
             {
                 throw new Exception($"Internal server error: {ex}");
-
             }
         }
 
@@ -129,13 +157,18 @@ namespace UsersApi.Repository
         {
             try
             {
-                var query = _context.users.AsQueryable();
+                var query = _context.users.Include(u => u.userRoles).ThenInclude(r => r.role).AsQueryable();
 
                 if (!string.IsNullOrEmpty(filter))
                 {
                     query = query.Where(u =>
-                        u.Name.Contains(filter) || u.Email.Contains(filter)
+                        u.Name.Contains(filter) || u.Email.Contains(filter) || u.userRoles.Any(ur => ur.role.Name.Contains(filter))
                     );
+                }
+
+                if(query.Count() == 0)
+                {
+                    throw new ArgumentNullException("No users with filter params");
                 }
 
                 //sort
@@ -173,6 +206,10 @@ namespace UsersApi.Repository
                     
                     return result;
             }
+            catch(ArgumentNullException ex)
+            {
+                throw ex;
+            }
             catch (Exception ex)
             {
                 throw new Exception($"Internal server error: {ex}");
@@ -194,6 +231,10 @@ namespace UsersApi.Repository
                 }
 
                 return user;
+            }
+            catch (ArgumentNullException ex)
+            {
+                throw ex;
             }
             catch (Exception ex)
             {
@@ -222,7 +263,50 @@ namespace UsersApi.Repository
 
                 return true;
             }
+            catch(ArgumentNullException ex)
+            {
+                throw ex;
+            }
             catch(Exception ex) 
+            {
+                throw new Exception($"Internal server error: {ex}");
+            }
+        }
+
+        public async Task<bool> DeleteRoleUser(int userId, string role)
+        {
+            try
+            {
+                var user = await _context.users.Include(u => u.userRoles).ThenInclude(r => r.role).SingleOrDefaultAsync(u => u.Id == userId);
+
+                if (user == null)
+                {
+                    throw new NoUserExeption($"No users with id {userId}");
+                }
+
+
+                var roleToRemove = user.userRoles.SingleOrDefault(ur => ur.role.Name == role);
+
+                if (roleToRemove == null)
+                {
+                    throw new ArgumentNullException($"No role {role}");
+                }
+
+               
+                user.userRoles.Remove(roleToRemove);
+                await _context.SaveChangesAsync();
+
+                return true; 
+            }
+            catch(NoUserExeption ex)
+            {
+                throw ex;
+            }
+            catch(ArgumentNullException ex)
+            {
+                throw ex;
+            }
+            catch (Exception ex)
             {
                 throw new Exception($"Internal server error: {ex}");
             }

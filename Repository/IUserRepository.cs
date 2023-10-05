@@ -12,6 +12,8 @@ namespace UsersApi.Repository
         Task<int> CreateUser(User user);
         Task<bool> UpdateUser( int id,User updateUser);
         Task<bool> DeleteUser(int userId);
+        Task<bool> DeleteRoleUser(int userId,string role);
+
 
     }
 }
