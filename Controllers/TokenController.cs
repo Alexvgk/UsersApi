@@ -42,25 +42,25 @@ namespace UsersApi.Controllers
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "invalid credetials")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> Post(DtoUser _userData){
-            if (_userData != null && _userData.Email != null && _userData.Name != null)
+            try
             {
-                var result = await _userRepository.getUser(_userData.Email);
-                var user = result.Users.FirstOrDefault();
+                    var result = await _userRepository.getUser(_userData.Email);
+                    var user = result.Users.FirstOrDefault();
 
-                if (user != null && user.Name == _userData.Name && user.Email == _userData.Email)
-                {
-                    var token = _jwtService.GenerateJwtToken(_userData.Name);
-                    _logger.LogInformation($"GET TOKEN TO {_userData.Name}");
-                    return Ok(token);
-                }
-                else
-                {
-                    return StatusCode(401, "Invalid credentials");
-                }
+                    if (user != null && user.Name == _userData.Name && user.Email == _userData.Email)
+                    {
+                        var token = _jwtService.GenerateJwtToken(_userData.Name);
+                        _logger.LogInformation($"GET TOKEN TO {_userData.Name}");
+                        return Ok(token);
+                    }
+                    else
+                    {
+                        return StatusCode(401, "Invalid credentials");
+                    }
             }
-            else
+            catch (ArgumentNullException ex) 
             {
-                return StatusCode(404,"Invaid user");
+                return StatusCode(404, ex.Message);
             }
         }
 
