@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text.Json.Nodes;
 using UsersApi.Exeptions;
 using UsersApi.Model;
+using UsersApi.Model.Dto;
 using UsersApi.Service;
 
 namespace UsersApi.Repository
@@ -16,17 +17,20 @@ namespace UsersApi.Repository
     {
         private readonly UserContext _context;
 
-
+        /// <summary>
+        /// конструктор репозитория
+        /// </summary>
         public UserRepository(UserContext userContext)
         {
             _context = userContext; 
         }
-
+        /// <summary>
+        /// метод добавления роли пользователю
+        /// </summary>
         public async Task<bool> AddRoleToUser(int userId, string? bodyRole)
         {
             try
             {
-
                 var user = await _context.users.Include(u => u.userRoles).FirstOrDefaultAsync(u => u.Id == userId);
 
                 if (user == null)
@@ -40,26 +44,19 @@ namespace UsersApi.Repository
                 {
                     throw new ArgumentNullException("No such role");
                 }
-
-
                 if (!(user.userRoles.IsNullOrEmpty()) && user.userRoles.Any(ur => ur.roleId == role.Id))
                 {
                     throw new InvalidOperationException("This user has this role");
                 }
-
                 // new role
                 var userRole = new UserRole
                 {
                     userId = user.Id,
                     roleId = role.Id
                 };
-
                 _context.UserRoles.Add(userRole);
-
-
                 await _context.SaveChangesAsync();
                 return true;
-
             }
             catch (ArgumentNullException ex)
             {
@@ -75,7 +72,10 @@ namespace UsersApi.Repository
             }
         }
 
-        public async Task<int> CreateUser(User user)
+        /// <summary>
+        /// создание пользователя
+        /// </summary>
+        public async Task<int> CreateUser(DtoUser user)
         {
             try
             {
@@ -83,23 +83,17 @@ namespace UsersApi.Repository
                 {
                     throw new ArgumentNullException("User can't be null");
                 }
-                if (string.IsNullOrEmpty(user.Email) || string.IsNullOrEmpty(user.Name))
-                {
-                    throw new ArgumentNullException("Not all fields are filled in");
-                }
-                if (user.Age <= 0)
-                {
-                    throw new ArgumentException("Not acceptable age");
-                }
+                    
+                
                 var existingUser = await _context.users.FirstOrDefaultAsync(u => u.Email == user.Email);
                 if (existingUser != null)
                 {
                     throw new InvalidOperationException("Email is already in use");
                 }
-
-                _context.users.Add(user);
+                User addedUser = new User() { Age = user.Age, Email = user.Email, Name = user.Name };
+                _context.users.Add(addedUser);
                 await _context.SaveChangesAsync();
-                return user.Id;
+                return addedUser.Id;  
             }
             catch (ArgumentNullException ex)
             {
@@ -117,10 +111,11 @@ namespace UsersApi.Repository
             catch (Exception ex)
             {
                 throw new Exception($"Internal server error: {ex}");
-
             }
         }
-
+        /// <summary>
+        /// удаление пользователя
+        /// </summary>
         public async Task<bool> DeleteUser(int userId)
         {
             try
@@ -152,8 +147,10 @@ namespace UsersApi.Repository
                 throw new Exception($"Internal server error: {ex}");
             }
         }
-
-        public async Task<UsersPagedResult> getUser(string? filter, int page, int pageSize, string sortBy, string sortOrder)
+        /// <summary>
+        /// получение всех пользователей с возможностью сортировки и фильтрации
+        /// </summary>
+        public async Task<UsersPagedResult> getUser(string? filter, int page = 1, int pageSize=10, string sortBy = "id", string sortOrder= "asc")
         {
             try
             {
@@ -216,6 +213,9 @@ namespace UsersApi.Repository
             }
         }
 
+        /// <summary>
+        /// получение пользователя по id
+        /// </summary>
         public async Task<User> GetUserById(int id)
         {
             try
@@ -242,7 +242,10 @@ namespace UsersApi.Repository
             }
         }
 
-        public async Task<bool> UpdateUser(int id, User updatedUser)
+        /// <summary>
+        ///обновление информации пользователя
+        /// </summary>
+        public async Task<bool> UpdateUser(int id, DtoUser updatedUser)
         {
             try
             {
@@ -272,7 +275,9 @@ namespace UsersApi.Repository
                 throw new Exception($"Internal server error: {ex}");
             }
         }
-
+        /// <summary>
+        /// удаление роли у пользователя
+        /// </summary>
         public async Task<bool> DeleteRoleUser(int userId, string role)
         {
             try
