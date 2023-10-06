@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Annotations;
 using UsersApi.Exeptions;
 using UsersApi.Model;
+using UsersApi.Model.Dto;
 using UsersApi.Repository;
 using UsersApi.Service;
 
@@ -135,13 +136,13 @@ namespace UsersApi.Controllers
         [SwaggerResponse(StatusCodes.Status404NotFound, "no user")]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "invalid data")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
-        public async Task<IActionResult> CreateUser([FromBody] User user)
+        public async Task<IActionResult> CreateUser([FromBody] DtoUser user)
         {
             try
             {
                 int userId = await _userRepository.CreateUser(user);
                 _logger.LogInformation($"CREATE USER WITH ID {userId}");
-                return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
+                return Ok(userId);
             }
 
 
@@ -164,7 +165,7 @@ namespace UsersApi.Controllers
         }
 
         /// <summary>
-        /// Добавление роли пользователю
+        /// Обновление данных пользователя
         /// </summary>
         /// <param name="id">id пользователя, которому обновляем информацию/</param>
         /// <param name="updatedUser">новые данные пользователя</param>
@@ -173,7 +174,7 @@ namespace UsersApi.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "User updated")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] User updatedUser)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] DtoUser updatedUser)
         {
             try
             {
