@@ -19,7 +19,7 @@ namespace UsersApi.Model
         /// <summary>
         /// возраст пользователя
         /// </summary>
-        public int Age { get; set; }
+        public int? Age { get; set; }
         /// <summary>
         /// email пользователя
         /// </summary>

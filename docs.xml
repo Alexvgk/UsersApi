@@ -9,12 +9,18 @@
             контроллер получения токена
             </summary>
         </member>
-        <member name="M:UsersApi.Controllers.TokenController.#ctor(UsersApi.Repository.IUserRepository,UsersApi.Helpers.IJwtService)">
+        <member name="M:UsersApi.Controllers.TokenController.#ctor(UsersApi.Repository.IUserRepository,UsersApi.Helpers.IJwtService,Microsoft.Extensions.Logging.ILogger{UsersApi.Controllers.TokenController})">
             <summary>
             конструктор контроллера
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:UsersApi.Controllers.TokenController.Post(UsersApi.Model.User)" -->
+        <member name="M:UsersApi.Controllers.TokenController.Post(UsersApi.Model.Dto.DtoUser)">
+            <summary>
+            Получение токена
+            </summary>
+            <param name="_userData">пользователь, который получает токен</param>
+            <returns></returns>
+        </member>
         <member name="T:UsersApi.Controllers.UserController">
             <summary>
             main контроллер
@@ -51,16 +57,16 @@
             <param name="bodyRole">роль, котоую хотим добавить(Admin,User,Support,SuperAdmin)</param>
             <returns></returns>
         </member>
-        <member name="M:UsersApi.Controllers.UserController.CreateUser(UsersApi.Model.User)">
+        <member name="M:UsersApi.Controllers.UserController.CreateUser(UsersApi.Model.Dto.DtoUser)">
             <summary>
             Добавление пользователя
             </summary>
             <param name="user">пользователь</param>
             <returns></returns>
         </member>
-        <member name="M:UsersApi.Controllers.UserController.UpdateUser(System.Int32,UsersApi.Model.User)">
+        <member name="M:UsersApi.Controllers.UserController.UpdateUser(System.Int32,UsersApi.Model.Dto.DtoUser)">
             <summary>
-            Добавление роли пользователю
+            Обновление данных пользователя
             </summary>
             <param name="id">id пользователя, которому обновляем информацию/</param>
             <param name="updatedUser">новые данные пользователя</param>
@@ -80,6 +86,31 @@
             <param name="userId">id пользователя,у которого хотим удалить роль/</param>
             <param name="role">роль,которую хотим удалить/</param>
             <returns></returns>
+        </member>
+        <member name="T:UsersApi.Exeptions.NoUserExeption">
+            <summary>
+            исключение выплывающее при отсутствии пользователя по заданым критериям
+            </summary>
+        </member>
+        <member name="P:UsersApi.Exeptions.NoUserExeption.Message">
+            <summary>
+            сообщение об ошибке
+            </summary>
+        </member>
+        <member name="M:UsersApi.Exeptions.NoUserExeption.#ctor(System.String)">
+            <summary>
+            конструктор исключения
+            </summary>
+        </member>
+        <member name="T:UsersApi.Helpers.IJwtService">
+            <summary>
+            интерфейс, который реализуется в jwt сервисах
+            </summary>
+        </member>
+        <member name="M:UsersApi.Helpers.IJwtService.GenerateJwtToken(System.String)">
+            <summary>
+            абстрактный метод генерации токена
+            </summary>
         </member>
         <member name="T:UsersApi.Helpers.JwtService">
              <summary>
@@ -109,20 +140,33 @@
         <member name="M:UsersApi.Migrations.UserMigration.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
             <inheritdoc />
         </member>
+        <member name="T:UsersApi.Model.Dto.DtoUser">
+            <summary>
+            Dto для создания пользователя, редактирования данных пользователя и получения токена
+            </summary>
+        </member>
+        <member name="P:UsersApi.Model.Dto.DtoUser.Name">
+            <summary> соответствует name из User </summary>
+        </member>
+        <member name="P:UsersApi.Model.Dto.DtoUser.Age">
+            <summary> соответствует age из User </summary>
+        </member>
+        <member name="P:UsersApi.Model.Dto.DtoUser.Email">
+            <summary> соответствует email из User  </summary>
+        </member>
         <member name="T:UsersApi.Model.Role">
             <summary>
             роль пользователя
             </summary>
         </member>
         <member name="P:UsersApi.Model.Role.Id">
-            <summary>
-            id пользователя
-            </summary>
+            <summary> id пользователя </summary>
         </member>
         <member name="P:UsersApi.Model.Role.Name">
-            <summary>
-            роль 
-            </summary>
+            <summary> роль </summary>
+        </member>
+        <member name="P:UsersApi.Model.Role.userRole">
+            <summary> список пользователей, у которых есть эта роль(храниться id user- id role ) </summary>
         </member>
         <member name="T:UsersApi.Model.User">
             <summary>
@@ -174,9 +218,84 @@
             класс для получения всех данных из БД при запросе всех пользователей
             </summary>
         </member>
+        <member name="T:UsersApi.Repository.IUserRepository">
+            <summary>
+            интерфейс репозитория 
+            </summary>
+        </member>
         <member name="T:UsersApi.Repository.UserRepository">
             <summary>
             репозиторий получения данных из БД
+            </summary>
+        </member>
+        <member name="M:UsersApi.Repository.UserRepository.#ctor(UsersApi.Service.UserContext)">
+            <summary>
+            конструктор репозитория
+            </summary>
+        </member>
+        <member name="M:UsersApi.Repository.UserRepository.AddRoleToUser(System.Int32,System.String)">
+            <summary>
+            метод добавления роли пользователю
+            </summary>
+        </member>
+        <member name="M:UsersApi.Repository.UserRepository.CreateUser(UsersApi.Model.Dto.DtoUser)">
+            <summary>
+            создание пользователя
+            </summary>
+        </member>
+        <member name="M:UsersApi.Repository.UserRepository.DeleteUser(System.Int32)">
+            <summary>
+            удаление пользователя
+            </summary>
+        </member>
+        <member name="M:UsersApi.Repository.UserRepository.getUser(System.String,System.Int32,System.Int32,System.String,System.String)">
+            <summary>
+            получение всех пользователей с возможностью сортировки и фильтрации
+            </summary>
+        </member>
+        <member name="M:UsersApi.Repository.UserRepository.GetUserById(System.Int32)">
+            <summary>
+            получение пользователя по id
+            </summary>
+        </member>
+        <member name="M:UsersApi.Repository.UserRepository.UpdateUser(System.Int32,UsersApi.Model.Dto.DtoUser)">
+             <summary>
+            обновление информации пользователя
+             </summary>
+        </member>
+        <member name="M:UsersApi.Repository.UserRepository.DeleteRoleUser(System.Int32,System.String)">
+            <summary>
+            удаление роли у пользователя
+            </summary>
+        </member>
+        <member name="T:UsersApi.Service.UserContext">
+            <summary>
+            класс контекст подключения к базе данных
+            </summary>
+        </member>
+        <member name="M:UsersApi.Service.UserContext.#ctor(Microsoft.EntityFrameworkCore.DbContextOptions{UsersApi.Service.UserContext})">
+            <summary>
+            констурктор
+            </summary>
+        </member>
+        <member name="P:UsersApi.Service.UserContext.users">
+            <summary>
+            данные таблицы users
+            </summary>
+        </member>
+        <member name="P:UsersApi.Service.UserContext.roles">
+            <summary>
+            данные таблицы roles
+            </summary>
+        </member>
+        <member name="P:UsersApi.Service.UserContext.UserRoles">
+            <summary>
+            данные промежуточной таблицы userRoles
+            </summary>
+        </member>
+        <member name="M:UsersApi.Service.UserContext.OnModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <summary>
+            создание модели на основе зависимостей 
             </summary>
         </member>
     </members>
