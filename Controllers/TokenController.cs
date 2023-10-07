@@ -39,6 +39,7 @@ namespace UsersApi.Controllers
         [HttpPost]
         [SwaggerResponse(StatusCodes.Status200OK, "Get token",typeof(string))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "BadRequest")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "invalid credetials")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> Post(DtoUser _userData){

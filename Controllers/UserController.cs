@@ -208,7 +208,7 @@ namespace UsersApi.Controllers
                 _logger.LogInformation($"DELETE USER {id}");
                 return NoContent(); //204 No Content 
             }
-            catch(NoUserExeption e){ return StatusCode(404, e.Message); }
+            catch(NoUserException e){ return StatusCode(404, e.Message); }
             catch (Exception ex){ return StatusCode(500, $"Internal server error: {ex}"); }
 
         }
@@ -232,7 +232,7 @@ namespace UsersApi.Controllers
                 _logger.LogInformation($"DELETE USER {userId}");
                 return NoContent(); //204 No Content 
             }
-            catch (NoUserExeption e) { return StatusCode(404, e.Message); }
+            catch (NoUserException e) { return StatusCode(404, e.Message); }
             catch(ArgumentNullException e) { return StatusCode(404, e.Message); }
             catch (Exception ex) { return StatusCode(500, $"Internal server error: {ex}"); }
 

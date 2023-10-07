@@ -126,7 +126,7 @@ namespace UsersApi.Repository
 
                 if (user == null)
                 {
-                    throw new NoUserExeption("No user with this id");
+                    throw new NoUserException("No user with this id");
                 }
 
                 if(!(user.userRoles.IsNullOrEmpty()))
@@ -138,7 +138,7 @@ namespace UsersApi.Repository
 
                 return true; 
             }
-            catch (NoUserExeption ex)
+            catch (NoUserException ex)
             {
                 throw ex;
             }
@@ -286,7 +286,7 @@ namespace UsersApi.Repository
 
                 if (user == null)
                 {
-                    throw new NoUserExeption($"No users with id {userId}");
+                    throw new NoUserException($"No users with id {userId}");
                 }
 
 
@@ -303,7 +303,7 @@ namespace UsersApi.Repository
 
                 return true; 
             }
-            catch(NoUserExeption ex)
+            catch(NoUserException ex)
             {
                 throw ex;
             }

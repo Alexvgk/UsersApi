@@ -87,17 +87,17 @@
             <param name="role">роль,которую хотим удалить/</param>
             <returns></returns>
         </member>
-        <member name="T:UsersApi.Exeptions.NoUserExeption">
+        <member name="T:UsersApi.Exeptions.NoUserException">
             <summary>
             исключение выплывающее при отсутствии пользователя по заданым критериям
             </summary>
         </member>
-        <member name="P:UsersApi.Exeptions.NoUserExeption.Message">
+        <member name="P:UsersApi.Exeptions.NoUserException.Message">
             <summary>
             сообщение об ошибке
             </summary>
         </member>
-        <member name="M:UsersApi.Exeptions.NoUserExeption.#ctor(System.String)">
+        <member name="M:UsersApi.Exeptions.NoUserException.#ctor(System.String)">
             <summary>
             конструктор исключения
             </summary>
