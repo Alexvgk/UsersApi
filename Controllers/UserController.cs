@@ -44,6 +44,7 @@ namespace UsersApi.Controllers
         /// <returns></returns>
         [HttpGet("/")]
         [SwaggerResponse(StatusCodes.Status200OK, "User list", typeof(List<User>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Not valid data", typeof(List<User>))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> GetUsers(string? filter = "", int page = 1, int pageSize = 10, string sortBy = "Id", string sortOrder = "asc")
@@ -71,6 +72,7 @@ namespace UsersApi.Controllers
         //get users by id and his roles
         [HttpGet("{id}")]
         [SwaggerResponse(StatusCodes.Status200OK, "User details", typeof(User))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Not valid data", typeof(List<User>))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> GetUserById(int id)
@@ -172,6 +174,7 @@ namespace UsersApi.Controllers
         /// <returns></returns>
         [HttpPut("{id}")]
         [SwaggerResponse(StatusCodes.Status200OK, "User updated")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Not valid data")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] DtoUser updatedUser)
@@ -199,6 +202,7 @@ namespace UsersApi.Controllers
         /// <returns></returns>
         [HttpDelete("{id}")]
         [SwaggerResponse(StatusCodes.Status204NoContent, "delete user")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Not valid data")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
         public async Task<IActionResult> DeleteUser(int id)
         {
@@ -222,6 +226,7 @@ namespace UsersApi.Controllers
         /// <returns></returns>
         [HttpDelete("{userId}/roles")]
         [SwaggerResponse(StatusCodes.Status204NoContent, "delete role")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Not valid data")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Role not found")]
         public async Task<IActionResult> DeleteRoleUser(int userId,string role)
