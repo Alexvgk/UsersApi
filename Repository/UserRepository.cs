@@ -169,25 +169,26 @@ namespace UsersApi.Repository
                 }
 
                 //sort
+                sortBy = sortBy.ToLower();
                 switch (sortBy)
                 {
-                    case "Name":
+                    case "name":
                         query = sortOrder == "asc" ? query.OrderBy(u => u.Name) : query.OrderByDescending(u => u.Name);
                         break;
-                    case "Age":
+                    case "age":
                         query = sortOrder == "asc" ? query.OrderBy(u => u.Age) : query.OrderByDescending(u => u.Age);
                         break;
-                    case "Email":
+                    case "email":
                         query = sortOrder == "asc" ? query.OrderBy(u => u.Email) : query.OrderByDescending(u => u.Email);
                         break;
                     default:
                         query = sortOrder == "asc" ? query.OrderBy(u => u.Id) : query.OrderByDescending(u => u.Id);
                         break;
                 }
-
+                pageSize = pageSize > 0 ? pageSize : 10;
                 var totalItems = await query.CountAsync();
                 var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-                var currentPage = Math.Clamp(page, 1, totalPages);
+                var currentPage = Math.Clamp(page > 0 ? page : 1, 1, totalPages);
                     var users = await query
                         .Skip((currentPage - 1) * pageSize)
                         .Take(pageSize)
